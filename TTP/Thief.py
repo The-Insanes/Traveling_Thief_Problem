@@ -1,14 +1,15 @@
 from Backpack import Backpack
+from Object import Object
 
 class Thief():
-    def __init__(self, v_max: int, v_min: int, max_weight: int) -> None:
+    def __init__(self, v_max: float, v_min: float, max_weight: int) -> None:
         self.__v_max = v_max
         self.__v_min = v_min
         self.__v_act = v_max
         self.__backpack = Backpack(max_weight)
-        self.__pos = {"x": 0, "y": 0}
+        self.__pos = {'x': 0, 'y': 0}
     
-    def steal(self, new_object) -> bool:
+    def steal(self, new_object: Object) -> bool:
         if(self.__backpack.add_object(new_object)):
             total_weight = self.__backpack.get_total_weight()
             max_weight = self.__backpack.get_max_weight()
@@ -17,4 +18,13 @@ class Thief():
             return True
 
         return False
-            
+    
+    def move(self, x: int, y: int) -> None:
+        self.__pos['x'] = x
+        self.__pos['y'] = y
+
+    def get_pos(self) -> dict:
+        return self.__pos
+    
+    def get_actual_velocity(self) -> float:
+        return self.__v_act
