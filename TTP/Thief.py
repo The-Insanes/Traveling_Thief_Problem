@@ -27,4 +27,4 @@ class Thief():
         return self.__pos
     
     def get_actual_velocity(self) -> float:
-        return self.__v_act
+        return self.__v_act 
