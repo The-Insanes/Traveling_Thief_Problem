@@ -60,5 +60,3 @@ def read_all_files(direct) -> None:
             cont += 1
 
     return cases
-
-cases = read_all_files("./data")
