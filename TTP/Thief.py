@@ -3,9 +3,9 @@ from .Item import Item
 
 class Thief():
     def __init__(self, v_max: float, v_min: float, max_weight: int) -> None:
-        self.__v_max = v_max
-        self.__v_min = v_min
-        self.__v_act = v_max
+        self.__v_max = float(v_max)
+        self.__v_min = float(v_min)
+        self.__v_act = float(v_max)
         self.__backpack = Backpack(max_weight)
         self.__pos = {'x': 0, 'y': 0}
     
@@ -21,6 +21,9 @@ class Thief():
     
     def get_free_weight(self) -> int:
         return self.__backpack.get_max_weight() - self.__backpack.get_total_weight()
+
+    def get_price(self) -> int:
+        return self.__backpack.get_total_price()
 
     def move(self, x: int, y: int) -> None:
         self.__pos['x'] = x
