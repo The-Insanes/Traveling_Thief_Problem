@@ -1,5 +1,10 @@
+<<<<<<< HEAD
 from .Backpack import Backpack
 from .Item import Item
+=======
+from Backpack import Backpack
+from Item import Item
+>>>>>>> Knapsack
 
 class Thief():
     def __init__(self, v_max: float, v_min: float, max_weight: int) -> None:

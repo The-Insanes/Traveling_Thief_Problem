@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 from .Item import Item
+=======
+from Item import Object
+>>>>>>> Knapsack
 
 class Backpack():
     def __init__(self, max_weight: int) -> None:
