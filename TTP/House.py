@@ -29,3 +29,9 @@ class House():
 
     def get_pos(self) -> None:
         return self.__pos
+    
+    def get_weight(self) -> float:
+        return self.__total_weight
+
+    def get_value(self) -> float:
+        return self.__total_value
