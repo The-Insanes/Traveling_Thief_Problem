@@ -33,13 +33,11 @@ def create_distance_matrix(city: dict) -> list:
 
 
 def TSP(thief: Thief, city: dict) -> list:
-    print("si")
     distance_matrix = create_distance_matrix(city)
     total_time = 0 
     route = []
     act_house = city["1"]
     while(len(route) < len(city)):
-        print("si")
         best_next_distance = math.inf
         best_next_house = None
         for i in range(1,len(city)+1 , 1):
