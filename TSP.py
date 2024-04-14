@@ -2,6 +2,7 @@ import math
 from TTP import House
 from TTP import Thief
 from read_file import read_file
+from knapsack import knapsack
 
 #def setHouseValues(city: list) ->list:
 #    for house in city:
@@ -20,7 +21,6 @@ def calcular_distancia(houseX: House,houseY: House) -> int:
 def create_distance_matrix(city: dict) -> list:
     matrix = []
     for indexX in range(1, len(city)+1, 1):
-        print(indexX)
         houseX = city[str(indexX)]
         houseX_distances = []
         for indexY in range(1,len(city)+1,1):
@@ -28,18 +28,16 @@ def create_distance_matrix(city: dict) -> list:
             distanciaXY = calcular_distancia(houseX,houseY)
             houseX_distances.append(distanciaXY)
         matrix.append(houseX_distances)
-        print("se agrego lista de distancias para ", indexX)
     return matrix 
 
 
 def TSP(thief: Thief, city: dict) -> list:
-    print("si")
     distance_matrix = create_distance_matrix(city)
+    print("si")
     total_time = 0 
     route = []
     act_house = city["1"]
     while(len(route) < len(city)):
-        print("si")
         best_next_distance = math.inf
         best_next_house = None
         for i in range(1,len(city)+1 , 1):
@@ -47,11 +45,17 @@ def TSP(thief: Thief, city: dict) -> list:
                 if city[str(i)].get_index() not in route:
                     best_next_distance = distance_matrix[act_house.get_index()-1][i-1]
                     best_next_house = city[str(i)]
-        total_time += best_next_distance/int(thief.get_actual_velocity())
+        total_time += best_next_distance/float(thief.get_actual_velocity())
         act_house = best_next_house
+        #AQUI SE DEBE APLICAR EL ROBO 
+        remaining_houses = len(city)- len(route)
+        weight_rate = int(thief.get_free_weight())/remaining_houses
+        object_list = knapsack(act_house.get_objects() , weight_rate)
+        for obj in object_list:
+            thief.steal(obj)
+            
         route.append((act_house.get_index()))
-    print(no_se_repite(route), len(route))
-    return route, total_time
+    return route, total_time , thief.get_price()
 
 
 def no_se_repite(lista):
@@ -68,5 +72,5 @@ def no_se_repite(lista):
     
     return True
 
-name , thief , city , ratio = read_file("c:/Users/Taipan/Desktop/instances/a280_n279_bounded-strongly-corr_01.ttp")
+name , thief , city , ratio = read_file("c:/Users/Taipan/Desktop/instances/usa13509/usa13509_n13508_bounded-strongly-corr_02.ttp")
 print(TSP(thief, city))
