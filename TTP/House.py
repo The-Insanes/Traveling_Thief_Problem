@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 from .Item import Item
-=======
-from Item import Item
->>>>>>> Knapsack
 
 class House():
     def __init__(self, x: int, y: int, index: int) -> None:
