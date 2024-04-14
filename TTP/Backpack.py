@@ -1,4 +1,4 @@
-from Object import Object
+from Item import Item
 
 class Backpack():
     def __init__(self, max_weight: int) -> None:
@@ -7,7 +7,7 @@ class Backpack():
         self.__total_weight = 0
         self.__total_price = 0
 
-    def add_object(self, new_object: Object) -> bool:
+    def add_object(self, new_object: Item) -> bool:
         if self.__total_weight + new_object.get_weight() > self.__total_weight:
             return False
         
