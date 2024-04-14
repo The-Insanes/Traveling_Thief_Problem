@@ -1,5 +1,5 @@
 from Backpack import Backpack
-from Object import Object
+from Item import Item
 
 class Thief():
     def __init__(self, v_max: float, v_min: float, max_weight: int) -> None:
@@ -9,7 +9,7 @@ class Thief():
         self.__backpack = Backpack(max_weight)
         self.__pos = {'x': 0, 'y': 0}
     
-    def steal(self, new_object: Object) -> bool:
+    def steal(self, new_object: Item) -> bool:
         if(self.__backpack.add_object(new_object)):
             total_weight = self.__backpack.get_total_weight()
             max_weight = self.__backpack.get_max_weight()

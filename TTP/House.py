@@ -1,4 +1,4 @@
-from Object import Object
+from Item import Item
 
 class House():
     def __init__(self) -> None:
@@ -8,13 +8,13 @@ class House():
         self.__ratio = 0
         self.__pos = {"x": 0, "y": 0}
 
-    def add_object(self, new_object: Object) -> None:
+    def add_object(self, new_object: Item) -> None:
         self.__objects.append(new_object)
         self.__total_value += new_object.get_profit()
         self.__total_weight += new_object.get_weight()
         self.__ratio = self.__total_value / self.__total_weight
 
-    def delete_object(self, del_object: Object):
+    def delete_object(self, del_object: Item):
         self.__objects.remove(del_object)
 
     def get_ratio(self) -> float:

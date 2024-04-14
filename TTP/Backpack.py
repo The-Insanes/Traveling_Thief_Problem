@@ -1,4 +1,4 @@
-from Object import Object
+from Item import Object
 
 class Backpack():
     def __init__(self, max_weight: int) -> None:
