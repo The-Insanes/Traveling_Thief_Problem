@@ -1,7 +1,7 @@
-from Item import Item
+from .Item import Item
 
 class House():
-    def __init__(self, x, y, index) -> None:
+    def __init__(self, x: int, y: int, index: int) -> None:
         self.__objects = []
         self.__total_value = 0
         self.__total_weight = 0

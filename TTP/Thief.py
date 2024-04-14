@@ -1,5 +1,5 @@
-from Backpack import Backpack
-from Item import Item
+from .Backpack import Backpack
+from .Item import Item
 
 class Thief():
     def __init__(self, v_max: float, v_min: float, max_weight: int) -> None:

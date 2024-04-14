@@ -1,5 +1,5 @@
 class Item():
-    def __init__(self, weight, profit) -> None:
+    def __init__(self, weight: int, profit: int) -> None:
         self.__weight = weight
         self.__profit = profit
 
