@@ -21,7 +21,3 @@ def knapsack(Objects, maxWeigth):
 
         if(knapsackCurrentWeigth == maxWeigth): break
     return items
-
-
-
-# ---------------------------------------------------------------- Main ----------------------------------------------------------------
