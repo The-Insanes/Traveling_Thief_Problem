@@ -1,11 +1,7 @@
 class Item():
-<<<<<<< HEAD
     def __init__(self, weight: int, profit: int) -> None:
-=======
-    def __init__(self, weight, profit) -> None:
->>>>>>> Knapsack
-        self.__weight = weight
-        self.__profit = profit
+        self.__weight = int(weight)
+        self.__profit = int(profit)
 
     def get_weight(self) -> int:
         return self.__weight

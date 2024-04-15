@@ -3,12 +3,12 @@ from .Item import Item
 class Backpack():
     def __init__(self, max_weight: int) -> None:
         self.__objects = []
-        self.__max_weight = max_weight
+        self.__max_weight = int(max_weight)
         self.__total_weight = 0
         self.__total_price = 0
 
     def add_object(self, new_object: Item) -> bool:
-        if self.__total_weight + new_object.get_weight() > self.__total_weight:
+        if self.__total_weight + new_object.get_weight() > self.__max_weight:
             return False
         
         self.__objects.append(new_object)
@@ -29,7 +29,7 @@ class Backpack():
         return self.__total_price
 
     def get_total_weight(self) -> int:
-        return self.__total_weight
+        return int(self.__total_weight)
 
     def get_max_weight(self) -> int:
-        return self.__max_weight
+        return int(self.__max_weight)
