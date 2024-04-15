@@ -82,10 +82,11 @@ def funcion_objetivo(tiempo, dinero, ratio):
     return dinero-ratio*tiempo
 
 
-name , thief , city , ratio = read_file("C:/Users/Fabrizzio/OneDrive/Escritorio/PROGRAMAS/PROGRAMASPYTHON/Traveling_Thief_Problem/data/a280_n279_uncorr_01.ttp")
+name , thief , city , ratio = read_file("./data/a280-ttp/a280_n279_bounded-strongly-corr_01.ttp")
 
 TTPSolved = TTP(thief, city)
 
-print("Tiempo",TTPSolved[3])
-print("Dinero",TTPSolved[2])
-print(funcion_objetivo(TTPSolved[3], TTPSolved[2], 0.06))
+print(f"Tiempo de ejecución: {round(TTPSolved[3], 3)}[s]")
+print(f"Tiempo ladrón: {round(TTPSolved[1], 3)}[s]")
+print(f"Dinero: ${TTPSolved[2]}")
+print(f"Función objetivo: {round(funcion_objetivo(TTPSolved[3], TTPSolved[2], 0.06), 3)}")
