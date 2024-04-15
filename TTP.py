@@ -3,7 +3,7 @@ from TTP import House
 from TTP import Thief
 from read_file import read_file
 from knapsack import knapsack
-
+import time 
 #def setHouseValues(city: list) ->list:
 #    for house in city:
 #        house.price = 0
@@ -32,6 +32,7 @@ def create_distance_matrix(city: dict) -> list:
 
 
 def TSP(thief: Thief, city: dict) -> list:
+    init = time.time()
     distance_matrix = create_distance_matrix(city)
     print("si")
     total_time = 0 
@@ -55,7 +56,9 @@ def TSP(thief: Thief, city: dict) -> list:
             thief.steal(obj)
             
         route.append((act_house.get_index()))
-    return route, total_time , thief.get_price()
+    end = time.time()
+    finalTime = end - init
+    return route, total_time , thief.get_price(), finalTime
 
 
 def no_se_repite(lista):
@@ -72,5 +75,14 @@ def no_se_repite(lista):
     
     return True
 
-name , thief , city , ratio = read_file("c:/Users/Taipan/Desktop/instances/usa13509/usa13509_n13508_bounded-strongly-corr_02.ttp")
-print(TSP(thief, city))
+def funcion_objetivo(tiempo, dinero, ratio):
+    return dinero-ratio*tiempo
+
+
+name , thief , city , ratio = read_file("C:/Users/Fabrizzio/OneDrive/Escritorio/PROGRAMAS/PROGRAMASPYTHON/Traveling_Thief_Problem/data/a280_n279_uncorr_01.ttp")
+
+TSPSolved = TSP(thief, city)
+
+print("Tiempo",TSPSolved[3])
+print("Dinero",TSPSolved[2])
+print(funcion_objetivo(TSPSolved[3], TSPSolved[2], 0.06))
