@@ -11,7 +11,6 @@ def read_file(file_name: str) -> tuple:
     pattern = re.compile(r'(\w+.*?):\s*(.+)')
     
     for line in file:
-        print(line)
         match = pattern.match(line)
         if match:
             key = match.group(1).strip()
@@ -26,14 +25,12 @@ def read_file(file_name: str) -> tuple:
 
     digit_pattern = re.compile(r'\d+')
     for line in file:
-        print(line)
         if not digit_pattern.search(line): break
         
         line = line.split('\t')
         houses[line[0]] = House(float(line[1]), float(line[2]), int(line[0]))
 
     for line in file:
-        print(line)
         line = line.split('\t')
         houses[str(int(line[3]))].add_object(Item(int(line[2]), int(line[1])))
     file.close()
