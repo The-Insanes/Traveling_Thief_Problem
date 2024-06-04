@@ -7,13 +7,28 @@ def fitness(sol: tuple) -> float:
 def best_sol(population: list) -> np.ndarray:
     pass
 
-def create_population(population_size: int) -> tuple:
+def create_population(population_size: int = 4, total_cities_amount: int = 3, total_objects_amount: int = 7) -> tuple:
     """
     Esta función deberá recibir el tamaño de la población inicial
     y retornará una tupla en la cual la posición 0 corresponde a los agentes del
     problema TSP y en la posición 1 corresponde a los del knapsack.
     """
-    pass
+
+    ttp_solutions = []
+    knapsack_solutions = []
+
+    for _ in range(population_size):
+        
+        ttp_actual_solution = random.sample(range(1, total_cities_amount + 1), total_cities_amount)
+        knapsack_actual_solution = [random.choice([0, 1]) for _ in range(total_objects_amount)]
+        #print(ttp_solution)
+        #print(knapsack_solution)
+        ttp_solutions.append(ttp_actual_solution)
+        knapsack_solutions.append(knapsack_actual_solution)
+
+
+    return ttp_solutions, knapsack_solutions
+    
 
 def select_parent(population: list[tuple], truncation_ratio: float) -> tuple:
     """
@@ -57,3 +72,8 @@ def GA(mutate_ratio: float, truncation_ratio: float, epochs: int, population_siz
         print(f"Generation {gen}: Best individual = {best}, Fitness = {fitness(best)}")
     
     return best
+
+
+
+
+print(create_population())
