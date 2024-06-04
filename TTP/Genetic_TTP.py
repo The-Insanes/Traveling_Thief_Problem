@@ -109,7 +109,66 @@ def select_parent(population: list[tuple], truncation_ratio: float) -> tuple:
     posibles soluciones del problema, de aquí se escogerán a los 2 mejores
     padres los cuales serán discriminados en base a truncation_ratio.
     """
-    pass
+    best_p1 = 0
+    best_p2 = 0
+
+    for sol in population:
+        target = fitness(sol)
+
+        if target >= best_p1:
+            best_p2 = best_p1
+            best_p1 = sol
+
+        elif target >= best_p2:
+            best_p2 = sol
+    return best_p1, best_p1
+
+import random
+
+def crossover_knapsack(p1: list, p2:list) ->list:
+    #Utilizamos un cruce simple de probabilidades para ver si se intercambian los bits de los padres
+        first_child_knapsack = []
+        for i in len(p1):
+            probability = random.randint(1,100)
+            #si la probablidad es menor a 50% se mantienen iguales
+            if probability <= 50:
+                first_child_knapsack.append(p1[i])
+            #si la probabilidad es mayor a 50% se intercambian estos bits
+            else:
+                first_child_knapsack.append(p2[i])
+        return first_child_knapsack
+
+def crossover_TSP(p1:list, p2:list) ->list:
+     #Usamos un Cruce de Segmento Ordenado
+        #Se divide los padres en 3 particiones de tamaños iguales
+        #partition_length = len(p1)/3
+        first_child = []
+        segment = []
+
+        segment.append(random.random())
+        segment.append(random.random())
+        segment.sort()
+
+        normalized_probs = (1 / len(p1))
+        segment_start = (segment[0]/normalized_probs)
+        segment_end = (segment[1]/normalized_probs)
+
+        for i in range(segment_start, segment_end, 1):
+            first_child.append(p1[i])
+
+        cont = 0
+        for i in p2:
+            #Se agregan en el primer segmento hasta que el largo de este se cumpla
+            while cont <= segment_start:
+                if i not in first_child:
+                    #Si no esta se agrega en la poscicion del contador el elemento i
+                    first_child.insert(cont, i)
+                    cont += 1
+            #una vez ya se cumple el largo del primer segmento, se empiezan agregar los faltantes al final
+            if i not in first_child:
+                first_child.append(i)
+
+        return first_child
 
 def crossover(parent_1: tuple, parent_2: tuple) -> tuple:
     """
@@ -117,7 +176,13 @@ def crossover(parent_1: tuple, parent_2: tuple) -> tuple:
     agente hijo, a partir de aquí debe retornar una tupla donde la posición 
     0 sea la solución al problema TSP y la 1 al knapsack.
     """
-    pass
+    #KNAPSACK
+    first_knapsack = crossover_knapsack(parent_1[1], parent_2[1])
+
+    #TRAVELING SALESMAN PROBLEM
+    first_TSP= crossover_TSP(parent_1[0], parent_2[0])
+    first_tuple = (first_TSP, first_knapsack)
+    return first_tuple
 
 def mutate(child: tuple, mutate_ratio: float, mutateTSP, mutateKnapsack) -> tuple:
     """
