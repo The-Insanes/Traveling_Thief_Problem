@@ -125,9 +125,10 @@ def select_parent(population: list[tuple], truncation_ratio: float) -> tuple:
 
 import random
 
-def crossover_knapsack(p1: list, p2:list) ->list:
+def crossover_knapsack(p1: list, p2:list, items: list[Item],thief: Thief ) ->list:
     #Utilizamos un cruce simple de probabilidades para ver si se intercambian los bits de los padres
         first_child_knapsack = []
+        peso = 0
         for i in len(p1):
             probability = random.randint(1,100)
             #si la probablidad es menor a 50% se mantienen iguales
@@ -136,6 +137,13 @@ def crossover_knapsack(p1: list, p2:list) ->list:
             #si la probabilidad es mayor a 50% se intercambian estos bits
             else:
                 first_child_knapsack.append(p2[i])
+            if first_child_knapsack[i] == 1:
+                """Si el peso que se va a agregar, superaria el maximo permitido, se cambia automaticamente a 0
+                para asi cumplir con la restriccion del problema de la mochila de no superar los pesos maximos"""
+                if items[i].get_weight > thief.get_free_weight:
+                    first_child_knapsack == 0
+                else:
+                    peso += items[i].get_weight
         return first_child_knapsack
 
 def crossover_TSP(p1:list, p2:list) ->list:
@@ -170,14 +178,14 @@ def crossover_TSP(p1:list, p2:list) ->list:
 
         return first_child
 
-def crossover(parent_1: tuple, parent_2: tuple) -> tuple:
+def crossover(parent_1: tuple, parent_2: tuple, items:list[Item], thief:Thief) -> tuple:
     """
     Está función recibirá a dos agentes padres y deberá generar un nuevo 
     agente hijo, a partir de aquí debe retornar una tupla donde la posición 
     0 sea la solución al problema TSP y la 1 al knapsack.
     """
     #KNAPSACK
-    first_knapsack = crossover_knapsack(parent_1[1], parent_2[1])
+    first_knapsack = crossover_knapsack(parent_1[1], parent_2[1], items, thief)
 
     #TRAVELING SALESMAN PROBLEM
     first_TSP= crossover_TSP(parent_1[0], parent_2[0])
