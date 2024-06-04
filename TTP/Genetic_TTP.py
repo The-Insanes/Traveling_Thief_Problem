@@ -1,6 +1,31 @@
 import random
 import numpy as np
 
+class Mutate:
+
+    def random_resetting(knapsack_solution):
+        i = random.randint(0, len(knapsack_solution) - 1)
+        knapsack_solution[i] = random.choice([0, 1])
+        return knapsack_solution
+
+    def bit_flip(knapsack_solution):
+        i = random.randint(0, len(knapsack_solution) - 1)
+        knapsack_solution[i] = 1 - knapsack_solution[i]
+        return knapsack_solution
+    
+    def scramble_mutation(tsp_solution):
+        i, j = sorted(random.sample(range(len(tsp_solution)), 2))
+        segmento = tsp_solution[i:j+1]
+        random.shuffle(segmento)
+        tsp_solution[i:j+1] = segmento
+        return tsp_solution
+    
+    def swap_mutation(tsp_solution):
+        i, j = random.sample(range(len(tsp_solution)), 2)
+        tsp_solution[i], tsp_solution[j] = tsp_solution[j], tsp_solution[i]
+        return tsp_solution
+
+
 def fitness(sol: tuple) -> float:
     pass
 
@@ -13,21 +38,16 @@ def create_population(population_size: int = 4, total_cities_amount: int = 3, to
     y retornará una tupla en la cual la posición 0 corresponde a los agentes del
     problema TSP y en la posición 1 corresponde a los del knapsack.
     """
-
-    ttp_solutions = []
-    knapsack_solutions = []
+    population = []
 
     for _ in range(population_size):
         
         ttp_actual_solution = random.sample(range(1, total_cities_amount + 1), total_cities_amount)
         knapsack_actual_solution = [random.choice([0, 1]) for _ in range(total_objects_amount)]
-        #print(ttp_solution)
-        #print(knapsack_solution)
-        ttp_solutions.append(ttp_actual_solution)
-        knapsack_solutions.append(knapsack_actual_solution)
+        population.append((ttp_actual_solution, knapsack_actual_solution))
 
 
-    return ttp_solutions, knapsack_solutions
+    return population 
     
 
 def select_parent(population: list[tuple], truncation_ratio: float) -> tuple:
@@ -46,13 +66,18 @@ def crossover(parent_1: tuple, parent_2: tuple) -> tuple:
     """
     pass
 
-def mutate(child: tuple, mutate_ratio: float) -> tuple:
+def mutate(child: tuple, mutate_ratio: float, mutateTSP, mutateKnapsack) -> tuple:
     """
     Está función recibirá a un agente el cual pasará por un proceso de
     mutación, está puede llegar a ocurrir como no, esto se realizará 
     con la variable mutate_ratio.
     """
-    pass
+    if random.random(0, 1) < mutate_ratio:
+        mutatedRoute = mutateTSP(child[0])
+        mutatedObjects = mutateKnapsack(child[1]) 
+
+        child = mutatedRoute, mutatedObjects 
+    return child
 
 def GA(mutate_ratio: float, truncation_ratio: float, epochs: int, population_size: int):
     population = create_population(population_size)
