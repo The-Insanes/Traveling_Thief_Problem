@@ -1,11 +1,65 @@
 import random
 import numpy as np
+import math as mt
+from Thief import Thief
+from Item import Item
+from copy import deepcopy
 
-def fitness(sol: tuple) -> float:
-    pass
+def steal_items(house: int, thief: Thief, items: list[Item], sol: list[int]) -> float:
+    total = 0
+    items_size = len(sol)
 
-def best_sol(population: list) -> np.ndarray:
-    pass
+    for i in range(items_size):
+        if not sol[i] == 0 and items[i].get_house_id() == house:
+            thief.steal(items[i])
+            total += items[i].get_profit() 
+
+    return total
+
+def fitness(data: dict, sol: tuple) -> float:
+    tsp_sol, knapsack_sol = sol[0], sol[1]
+    tsp_size = len(tsp_sol)
+    houses, items, thief = data['Houses'], data['Items'], deepcopy(data['Thief'])
+    knapsack_tarjet, TSP_tarjet = 0, 0
+
+    for i in range(tsp_size - 1):
+        house, next_house = tsp_sol[i], tsp_sol[i + 1]
+        
+        knapsack_tarjet += steal_items(house, thief, items, knapsack_sol)
+
+        pos_1 = houses[house].get_pos()
+        pos_2 = houses[next_house].get_pos()
+
+        distance = mt.sqrt((pos_1[0] - pos_2[0]) ** 2 + (pos_1[1] - pos_2[1]) ** 2)
+        time = distance / thief.get_actual_velocity()
+
+        TSP_tarjet += time
+
+    knapsack_tarjet += steal_items(tsp_sol[tsp_size - 1], thief, items, knapsack_sol)
+
+    pos_1 = houses[tsp_size - 1].get_pos()
+    pos_2 = houses[0].get_pos()
+
+    distance = mt.sqrt((pos_1[0] - pos_2[0]) ** 2 + (pos_1[1] - pos_2[1]) ** 2)
+    time = distance / thief.get_actual_velocity()
+
+    TSP_tarjet += time
+
+    return knapsack_tarjet - data['Tasa'] * TSP_tarjet
+
+def best_sol(data: dict, population: list) -> np.ndarray:
+    population_size = len(population)
+    best_tarjet = fitness(data, population[0])
+    best_sol = population[0]
+
+    for i in range(1, population_size):
+        tarjet = fitness(data, population[i])
+
+        if tarjet > best_tarjet:
+            best_tarjet = tarjet
+            best_sol = population[i]
+
+    return best_sol
 
 def create_population(population_size: int) -> tuple:
     """
