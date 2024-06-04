@@ -82,7 +82,7 @@ def funcion_objetivo(tiempo, dinero, ratio):
     return dinero-ratio*tiempo
 
 
-name , thief , city , ratio = read_file("./data/a280-ttp/a280_n279_bounded-strongly-corr_01.ttp")
+name , thief , city , ratio = read_file("./data/rl5915_n59140_bounded-strongly-corr_05.ttp")
 
 TTPSolved = TTP(thief, city)
 
