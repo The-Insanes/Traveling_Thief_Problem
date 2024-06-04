@@ -1,8 +1,8 @@
 import random
 import numpy as np
 import math as mt
-from Thief import Thief
-from Item import Item
+from TTP.Thief import Thief
+from TTP.Item import Item
 from copy import deepcopy
 
 class Mutate:
@@ -47,29 +47,29 @@ def fitness(data: dict, sol: tuple) -> float:
     knapsack_tarjet, TSP_tarjet = 0, 0
 
     for i in range(tsp_size - 1):
-        house, next_house = tsp_sol[i], tsp_sol[i + 1]
+        house, next_house = str(tsp_sol[i]), str(tsp_sol[i + 1])
         
         knapsack_tarjet += steal_items(house, thief, items, knapsack_sol)
 
         pos_1 = houses[house].get_pos()
         pos_2 = houses[next_house].get_pos()
 
-        distance = mt.sqrt((pos_1[0] - pos_2[0]) ** 2 + (pos_1[1] - pos_2[1]) ** 2)
+        distance = mt.sqrt((pos_1['x'] - pos_2['x']) ** 2 + (pos_1['y'] - pos_2['y']) ** 2)
         time = distance / thief.get_actual_velocity()
 
         TSP_tarjet += time
 
     knapsack_tarjet += steal_items(tsp_sol[tsp_size - 1], thief, items, knapsack_sol)
 
-    pos_1 = houses[tsp_size - 1].get_pos()
-    pos_2 = houses[0].get_pos()
+    pos_1 = houses[str(tsp_sol[tsp_size - 1])].get_pos()
+    pos_2 = houses[str(tsp_sol[0])].get_pos()
 
-    distance = mt.sqrt((pos_1[0] - pos_2[0]) ** 2 + (pos_1[1] - pos_2[1]) ** 2)
+    distance = mt.sqrt((pos_1['x'] - pos_2['x']) ** 2 + (pos_1['y'] - pos_2['y']) ** 2)
     time = distance / thief.get_actual_velocity()
 
     TSP_tarjet += time
 
-    return knapsack_tarjet - data['Tasa'] * TSP_tarjet
+    return knapsack_tarjet - float(data['Ratio']) * TSP_tarjet
 
 def best_sol(data: dict, population: list) -> np.ndarray:
     population_size = len(population)
@@ -85,7 +85,7 @@ def best_sol(data: dict, population: list) -> np.ndarray:
 
     return best_sol
 
-def create_population(population_size: int = 4, total_cities_amount: int = 3, total_objects_amount: int = 7) -> tuple:
+def create_population(population_size: int, total_cities_amount: int, total_objects_amount: int, max_weight: int, item_list: list[Item]) -> tuple:
     """
     Esta función deberá recibir el tamaño de la población inicial
     y retornará una tupla en la cual la posición 0 corresponde a los agentes del
@@ -96,88 +96,108 @@ def create_population(population_size: int = 4, total_cities_amount: int = 3, to
     for _ in range(population_size):
         
         ttp_actual_solution = random.sample(range(1, total_cities_amount + 1), total_cities_amount)
-        knapsack_actual_solution = [random.choice([0, 1]) for _ in range(total_objects_amount)]
-        population.append((ttp_actual_solution, knapsack_actual_solution))
+        
+        # solution example for knapsack: [1,0,0,0,1,0,1,1,0,1] with 10 items in total
+        # for each knapsack solution
+
+        actual_weight = 0 
+        # list with items selected in actual solution
+        actual_selected_items = [0]*len(item_list)
+
+        # list with random numbers ex: [2,1,4,5,3,6,7,9,8,0] that represents the order to select items randomly
+        order_selection = random.sample(range(0, len(item_list)), len(item_list))
+
+        for i in range(len(item_list)):
+            # add item weight to actual weight to prove if its more than max weight or not
+            if ((actual_weight + (item_list[order_selection[i]]).get_weight()) <= max_weight):
+                # the object in 'item_list[order_selection[i]' is an 'Item' so we can tecnically use .getWeight()
+                actual_weight += (item_list[order_selection[i]]).get_weight()
+                actual_selected_items[order_selection[i]] = 1 #the item selection is_valid so we put '1'  in the actual_selected_items list
+            else:
+                break
+        knapsack_actual_solution = actual_selected_items
+        
+        # we add both solutions to population and continue with next child
+        population.append((ttp_actual_solution, knapsack_actual_solution)) 
 
 
     return population 
     
 
-def select_parent(population: list[tuple], truncation_ratio: float) -> tuple:
-    """
-    Esta función recibirá una lista de tuplas que corresponderán a las
-    posibles soluciones del problema, de aquí se escogerán a los 2 mejores
-    padres los cuales serán discriminados en base a truncation_ratio.
-    """
-    best_p1 = 0
-    best_p2 = 0
+def select_parents(population, truncation_ratio, data):
+    population_sorted = sorted(population, key=lambda ind: fitness(data, ind), reverse=True)
+    truncation_index = int(truncation_ratio * len(population))
+    truncated_population = population_sorted[:truncation_index]
+    
+    parent1 = random.choice(truncated_population)
+    parent2 = random.choice(truncated_population)
+    
+    return parent1, parent2
 
-    for sol in population:
-        target = fitness(sol)
-
-        if target >= best_p1:
-            best_p2 = best_p1
-            best_p1 = sol
-
-        elif target >= best_p2:
-            best_p2 = sol
-    return best_p1, best_p1
-
-import random
-
-def crossover_knapsack(p1: list, p2:list) ->list:
+def crossover_knapsack(p1: list, p2:list, items: list[Item], thief: Thief) -> list:
     #Utilizamos un cruce simple de probabilidades para ver si se intercambian los bits de los padres
-        first_child_knapsack = []
-        for i in len(p1):
-            probability = random.randint(1,100)
-            #si la probablidad es menor a 50% se mantienen iguales
-            if probability <= 50:
-                first_child_knapsack.append(p1[i])
-            #si la probabilidad es mayor a 50% se intercambian estos bits
+    first_child_knapsack = []
+    p1_size = len(p1)
+    weight = 0
+
+    for i in range(p1_size):
+        probability = random.randint(1,100)
+        #si la probablidad es menor a 50% se mantienen iguales
+        if probability <= 50:
+            first_child_knapsack.append(p1[i])
+        #si la probabilidad es mayor a 50% se intercambian estos bits
+        else:
+            first_child_knapsack.append(p2[i])
+
+        if first_child_knapsack[i] == 1:
+            """Si el peso que se va a agregar, superaria el maximo permitido, se cambia automaticamente a 0
+            para asi cumplir con la restriccion del problema de la mochila de no superar los pesos maximos"""
+            if items[i].get_weight() > thief.get_free_weight():
+                first_child_knapsack == 0
             else:
-                first_child_knapsack.append(p2[i])
-        return first_child_knapsack
+                weight += items[i].get_weight()
 
-def crossover_TSP(p1:list, p2:list) ->list:
-     #Usamos un Cruce de Segmento Ordenado
-        #Se divide los padres en 3 particiones de tamaños iguales
-        #partition_length = len(p1)/3
-        first_child = []
-        segment = []
+    return first_child_knapsack
 
-        segment.append(random.random())
-        segment.append(random.random())
-        segment.sort()
+def crossover_TSP(p1: list, p2: list) -> list:
+    # Usamos un Cruce de Segmento Ordenado
+    # Se divide los padres en 3 particiones de tamaños iguales
+    first_child = []
+    segment = []
 
-        normalized_probs = (1 / len(p1))
-        segment_start = (segment[0]/normalized_probs)
-        segment_end = (segment[1]/normalized_probs)
+    segment.append(random.random())
+    segment.append(random.random())
+    segment.sort()
 
-        for i in range(segment_start, segment_end, 1):
-            first_child.append(p1[i])
+    normalized_probs = (1 / len(p1))
+    segment_start = int(segment[0] / normalized_probs)
+    segment_end = int(segment[1] / normalized_probs)
 
-        cont = 0
-        for i in p2:
-            #Se agregan en el primer segmento hasta que el largo de este se cumpla
-            while cont <= segment_start:
-                if i not in first_child:
-                    #Si no esta se agrega en la poscicion del contador el elemento i
-                    first_child.insert(cont, i)
-                    cont += 1
-            #una vez ya se cumple el largo del primer segmento, se empiezan agregar los faltantes al final
+    for i in range(segment_start, segment_end):
+        first_child.append(p1[i])
+
+    cont = 0
+    for i in p2:
+        # Se agregan en el primer segmento hasta que el largo de este se cumpla
+        while cont <= segment_start:
             if i not in first_child:
-                first_child.append(i)
+                # Si no esta se agrega en la poscicion del contador el elemento i
+                first_child.insert(cont, i)
+            cont += 1  # Este incremento debe estar fuera del `if` para evitar el bucle infinito
+        # Una vez ya se cumple el largo del primer segmento, se empiezan agregar los faltantes al final
+        if i not in first_child:
+            first_child.append(i)
 
-        return first_child
+    return first_child
 
-def crossover(parent_1: tuple, parent_2: tuple) -> tuple:
+def crossover(parent_1: tuple, parent_2: tuple, data) -> tuple:
     """
     Está función recibirá a dos agentes padres y deberá generar un nuevo 
     agente hijo, a partir de aquí debe retornar una tupla donde la posición 
     0 sea la solución al problema TSP y la 1 al knapsack.
     """
     #KNAPSACK
-    first_knapsack = crossover_knapsack(parent_1[1], parent_2[1])
+    first_knapsack = crossover_knapsack(parent_1[1], parent_2[1], data['Items'], deepcopy(data['Thief']))
 
     #TRAVELING SALESMAN PROBLEM
     first_TSP= crossover_TSP(parent_1[0], parent_2[0])
@@ -190,7 +210,7 @@ def mutate(child: tuple, mutate_ratio: float, mutateTSP, mutateKnapsack) -> tupl
     mutación, está puede llegar a ocurrir como no, esto se realizará 
     con la variable mutate_ratio.
     """
-    if random.random(0, 1) < mutate_ratio:
+    if random.random() < mutate_ratio:
         mutatedRoute = mutateTSP(child[0])
         mutatedObjects = mutateKnapsack(child[1]) 
 
@@ -199,21 +219,21 @@ def mutate(child: tuple, mutate_ratio: float, mutateTSP, mutateKnapsack) -> tupl
 
 def GA(data: dict, mutate_ratio: float, truncation_ratio: float, epochs: int, population_size: int,
        total_cities: int, total_objects: int, mutateTSP, mutateKnapsack):
-    population = create_population(population_size, total_cities, total_objects)
+    population = create_population(population_size, total_cities, total_objects, data['Thief'].get_free_weight(), data['Items'])
 
     for gen in range(epochs):
         child_population = []
 
         for _ in range(population_size):
-            parent_1, parent_2 = select_parent(population, truncation_ratio)
-            offspring = crossover(parent_1, parent_2)
+            parent_1, parent_2 = select_parents(population, truncation_ratio, data)
+            
+            offspring = crossover(parent_1, parent_2, data)
             offspring = mutate(offspring, mutate_ratio, mutateTSP, mutateKnapsack)
 
             child_population.append(offspring)
         
         population = child_population
         best = best_sol(data, population)
-        print(f"Generation {gen}: Best individual = {best}, Fitness = {fitness(best)}")
+        print(f"Generation {gen}: Fitness = {fitness(data, best)}")
     
     return best
-
