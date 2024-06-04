@@ -18,7 +18,7 @@ class Mutate:
         return knapsack_solution
     
     def scramble_mutation(tsp_solution):
-        i, j = sorted(random.sample(range(len(tsp + _solution)), 2))
+        i, j = sorted(random.sample(range(len(tsp_solution)), 2))
         segmento = tsp_solution[i:j+1]
         random.shuffle(segmento)
         tsp_solution[i:j+1] = segmento
