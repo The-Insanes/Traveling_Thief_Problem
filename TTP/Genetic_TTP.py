@@ -197,8 +197,9 @@ def mutate(child: tuple, mutate_ratio: float, mutateTSP, mutateKnapsack) -> tupl
         child = mutatedRoute, mutatedObjects 
     return child
 
-def GA(mutate_ratio: float, truncation_ratio: float, epochs: int, population_size: int):
-    population = create_population(population_size)
+def GA(data: dict, mutate_ratio: float, truncation_ratio: float, epochs: int, population_size: int,
+       total_cities: int, total_objects: int, mutateTSP, mutateKnapsack):
+    population = create_population(population_size, total_cities, total_objects)
 
     for gen in range(epochs):
         child_population = []
@@ -206,17 +207,13 @@ def GA(mutate_ratio: float, truncation_ratio: float, epochs: int, population_siz
         for _ in range(population_size):
             parent_1, parent_2 = select_parent(population, truncation_ratio)
             offspring = crossover(parent_1, parent_2)
-            offspring = mutate(offspring, mutate_ratio)
+            offspring = mutate(offspring, mutate_ratio, mutateTSP, mutateKnapsack)
 
             child_population.append(offspring)
         
         population = child_population
-        best = best_sol(population)
+        best = best_sol(data, population)
         print(f"Generation {gen}: Best individual = {best}, Fitness = {fitness(best)}")
     
     return best
 
-
-
-
-print(create_population())
