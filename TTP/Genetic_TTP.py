@@ -6,7 +6,6 @@ from TTP.Item import Item
 from copy import deepcopy
 
 class Mutate:
-
     def random_resetting(knapsack_solution):
         i = random.randint(0, len(knapsack_solution) - 1)
         knapsack_solution[i] = random.choice([0, 1])
@@ -34,22 +33,22 @@ def steal_items(house: int, thief: Thief, items: list[Item], sol: list[int]) -> 
     items_size = len(sol)
 
     for i in range(items_size):
-        if not sol[i] == 0 and items[i].get_house_id() == house:
+        if sol[i] == 1 and items[i].get_house_id() == house:
             thief.steal(items[i])
-            total += items[i].get_profit() 
-
+            total += items[i].get_profit()
+    
     return total
 
 def fitness(data: dict, sol: tuple) -> float:
     tsp_sol, knapsack_sol = sol[0], sol[1]
     tsp_size = len(tsp_sol)
     houses, items, thief = data['Houses'], data['Items'], deepcopy(data['Thief'])
-    knapsack_tarjet, TSP_tarjet = 0, 0
+    TSP_tarjet = 0
 
     for i in range(tsp_size - 1):
         house, next_house = str(tsp_sol[i]), str(tsp_sol[i + 1])
         
-        knapsack_tarjet += steal_items(house, thief, items, knapsack_sol)
+        steal_items(int(house), thief, items, knapsack_sol)
 
         pos_1 = houses[house].get_pos()
         pos_2 = houses[next_house].get_pos()
@@ -59,7 +58,7 @@ def fitness(data: dict, sol: tuple) -> float:
 
         TSP_tarjet += time
 
-    knapsack_tarjet += steal_items(tsp_sol[tsp_size - 1], thief, items, knapsack_sol)
+    steal_items(tsp_sol[tsp_size - 1], thief, items, knapsack_sol)
 
     pos_1 = houses[str(tsp_sol[tsp_size - 1])].get_pos()
     pos_2 = houses[str(tsp_sol[0])].get_pos()
@@ -69,7 +68,7 @@ def fitness(data: dict, sol: tuple) -> float:
 
     TSP_tarjet += time
 
-    return knapsack_tarjet - float(data['Ratio']) * TSP_tarjet
+    return thief.get_price() - float(data['Ratio']) * TSP_tarjet
 
 def best_sol(data: dict, population: list) -> np.ndarray:
     population_size = len(population)
@@ -102,12 +101,12 @@ def create_population(population_size: int, total_cities_amount: int, total_obje
 
         actual_weight = 0 
         # list with items selected in actual solution
-        actual_selected_items = [0]*len(item_list)
+        actual_selected_items = [0] * total_objects_amount
 
         # list with random numbers ex: [2,1,4,5,3,6,7,9,8,0] that represents the order to select items randomly
-        order_selection = random.sample(range(0, len(item_list)), len(item_list))
+        order_selection = random.sample(range(0, total_objects_amount), total_objects_amount)
 
-        for i in range(len(item_list)):
+        for i in range(total_objects_amount):
             # add item weight to actual weight to prove if its more than max weight or not
             if ((actual_weight + (item_list[order_selection[i]]).get_weight()) <= max_weight):
                 # the object in 'item_list[order_selection[i]' is an 'Item' so we can tecnically use .getWeight()
@@ -119,7 +118,6 @@ def create_population(population_size: int, total_cities_amount: int, total_obje
         
         # we add both solutions to population and continue with next child
         population.append((ttp_actual_solution, knapsack_actual_solution)) 
-
 
     return population 
     
@@ -225,9 +223,9 @@ def GA(data: dict, mutate_ratio: float, truncation_ratio: float, epochs: int, po
         child_population = []
 
         for _ in range(population_size):
-            parent_1, parent_2 = select_parents(population, truncation_ratio, data)
+            parent_1, parent_2 = select_parents(population, truncation_ratio, deepcopy(data))
             
-            offspring = crossover(parent_1, parent_2, data)
+            offspring = crossover(parent_1, parent_2, deepcopy(data))
             offspring = mutate(offspring, mutate_ratio, mutateTSP, mutateKnapsack)
 
             child_population.append(offspring)

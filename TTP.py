@@ -12,7 +12,7 @@ data = {'Houses': cities,
         'Thief': thief,
         'Ratio': ratio}
 
-print(GA(data, mutate_ratio= 0.2, truncation_ratio= 0.8, epochs= 100, 
+print(GA(data, mutate_ratio= 0.2, truncation_ratio= 0.8, epochs= 10, 
     population_size= 100, total_cities= len(cities), 
     total_objects= len(items), mutateKnapsack= Mutate.bit_flip, 
     mutateTSP= Mutate.scramble_mutation))
