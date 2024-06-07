@@ -1,6 +1,6 @@
-from TTP.Thief import Thief
-from TTP.House import House
-from TTP.Item import Item
+from TTP.common import Thief
+from TTP.common import House
+from TTP.common import Item
 import os
 import re
 

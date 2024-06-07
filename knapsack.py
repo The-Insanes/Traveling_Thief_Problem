@@ -1,4 +1,4 @@
-from TTP.Item import Item
+from TTP.common import Item
 import random 
 
 def calculateRatioItem(Element: Item) -> float:
