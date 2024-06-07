@@ -13,11 +13,13 @@ def steal_items(house: int, thief: Thief, items: list[Item], sol: list[int]) -> 
     
     return total
 
-def objective_function(data: dict, sol: tuple) -> float:
+def objective_function(data: dict, sol: tuple, verbose: bool = False) -> float:
     tsp_sol, knapsack_sol = sol[0], sol[1]
     tsp_size = len(tsp_sol)
-    houses, items, thief = data['Houses'], data['Items'], deepcopy(data['Thief'])
+    houses, items, thief = data['Houses'], data['Items'], data['Thief']
     TSP_tarjet = 0
+
+    print(thief.get_price())
 
     for i in range(tsp_size - 1):
         house, next_house = str(tsp_sol[i]), str(tsp_sol[i + 1])
@@ -42,4 +44,7 @@ def objective_function(data: dict, sol: tuple) -> float:
 
     TSP_tarjet += time
 
+    if verbose:
+        print(f'Valor obtenido: ${thief.get_price()}')
+        print(f'Tiempo de recorrido: {round(TSP_tarjet)}')
     return thief.get_price() - float(data['Ratio']) * TSP_tarjet
