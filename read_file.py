@@ -20,7 +20,7 @@ def read_file(file_name: str) -> tuple:
             info[key] = value
 
     name = info['DIMENSION'] + '_' + info['NUMBER OF ITEMS'] + 'CAPACITY OF KNAPSACK'
-    thief = Thief(info['MAX SPEED'], info['MIN SPEED'], info['CAPACITY OF KNAPSACK'])
+    thief = Thief(float(info['MAX SPEED']), float(info['MIN SPEED']), int(info['CAPACITY OF KNAPSACK']))
     houses = dict()
     items = []
 
@@ -38,8 +38,10 @@ def read_file(file_name: str) -> tuple:
 
         houses[str(int(line[3]))].add_object(item)
         items.append(item)
+
     file.close()
-    return name, thief, houses, items, info['RENTING RATIO']
+
+    return name, thief, houses, items, float(info['RENTING RATIO'])
 
 def read_all_files(direct) -> None:
     elements = os.listdir(direct)
