@@ -5,51 +5,10 @@ from .common import Thief
 from .common import Item
 from .crossovers import Crossover_Base
 from .mutations import Mutation_Base
+from .objective_function import objective_function as fitness
 from copy import deepcopy
-    
-def steal_items(house: int, thief: Thief, items: list[Item], sol: list[int]) -> float:
-    total = 0
-    items_size = len(sol)
 
-    for i in range(items_size):
-        if sol[i] == 1 and items[i].get_house_id() == house:
-            thief.steal(items[i])
-            total += items[i].get_profit()
-    
-    return total
-
-def fitness(data: dict, sol: tuple) -> float:
-    tsp_sol, knapsack_sol = sol[0], sol[1]
-    tsp_size = len(tsp_sol)
-    houses, items, thief = data['Houses'], data['Items'], deepcopy(data['Thief'])
-    TSP_tarjet = 0
-
-    for i in range(tsp_size - 1):
-        house, next_house = str(tsp_sol[i]), str(tsp_sol[i + 1])
-        
-        steal_items(int(house), thief, items, knapsack_sol)
-
-        pos_1 = houses[house].get_pos()
-        pos_2 = houses[next_house].get_pos()
-
-        distance = mt.sqrt((pos_1['x'] - pos_2['x']) ** 2 + (pos_1['y'] - pos_2['y']) ** 2)
-        time = distance / thief.get_actual_velocity()
-
-        TSP_tarjet += time
-
-    steal_items(tsp_sol[tsp_size - 1], thief, items, knapsack_sol)
-
-    pos_1 = houses[str(tsp_sol[tsp_size - 1])].get_pos()
-    pos_2 = houses[str(tsp_sol[0])].get_pos()
-
-    distance = mt.sqrt((pos_1['x'] - pos_2['x']) ** 2 + (pos_1['y'] - pos_2['y']) ** 2)
-    time = distance / thief.get_actual_velocity()
-
-    TSP_tarjet += time
-
-    return thief.get_price() - float(data['Ratio']) * TSP_tarjet
-
-def best_sol(data: dict, population: list) -> np.ndarray:
+def best_sol(data: dict, population: list) -> tuple:
     population_size = len(population)
     best_tarjet = fitness(data, population[0])
     best_sol = population[0]
@@ -80,7 +39,7 @@ def create_population(population_size: int, total_cities_amount: int, total_obje
 
         actual_weight = 0 
         # list with items selected in actual solution
-        actual_selected_items = [0] * total_objects_amount
+        actual_selected_items = [0] * (total_objects_amount)
 
         # list with random numbers ex: [2,1,4,5,3,6,7,9,8,0] that represents the order to select items randomly
         order_selection = random.sample(range(0, total_objects_amount), total_objects_amount)
@@ -111,9 +70,22 @@ def select_parents(population, truncation_ratio, data):
     
     return parent1, parent2
 
+def prepare_init_pop(init_pop: tuple, population_size: int, mutation: Mutation_Base):
+    population = [init_pop]
+
+    for _ in range(population_size - 1):
+        new_state = mutation.execute(init_pop, 1)
+        population.append(new_state)
+
+    return population
+
 def GA(data: dict, mutate_ratio: float, truncation_ratio: float, epochs: int, population_size: int,
-       total_cities: int, total_objects: int, mutation: Mutation_Base, crossover: Crossover_Base):
-    population = create_population(population_size, total_cities, total_objects, data['Thief'].get_free_weight(), data['Items'])
+       total_cities: int, total_objects: int, mutation: Mutation_Base, crossover: Crossover_Base, 
+       init_pop: tuple = None) -> tuple:
+    num_units = mt.log10(epochs) // 1
+
+    if init_pop is None: population = create_population(population_size, total_cities, total_objects, data['Thief'].get_free_weight(), data['Items'])
+    else: population = prepare_init_pop(init_pop, population_size, mutation)
 
     for gen in range(epochs):
         child_population = []
@@ -128,6 +100,6 @@ def GA(data: dict, mutate_ratio: float, truncation_ratio: float, epochs: int, po
         
         population = child_population
         best = best_sol(data, population)
-        print(f"Generation {gen}: Fitness = {fitness(data, best)}")
+        print(f"Generation {gen: {num_units}d}: Fitness = {round(fitness(data, best), 3)}")
     
     return best
