@@ -12,6 +12,6 @@ data = {'Houses': cities,
         'Thief': thief,
         'Ratio': ratio}
 
-print(GA(data, mutate_ratio= 0.2, truncation_ratio= 0.8, epochs= 10, 
-    population_size= 100, total_cities= len(cities), 
+print(GA(data, mutate_ratio= 0.5, truncation_ratio= 0.2, epochs= 50, 
+    population_size= 200, total_cities= len(cities), 
     total_objects= len(items), mutation= ResettingScramble(), crossover= SegmentSimple()))
