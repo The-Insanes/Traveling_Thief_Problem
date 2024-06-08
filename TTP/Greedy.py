@@ -25,40 +25,6 @@ def create_distance_matrix(city: dict) -> list:
     return matrix 
 
 
-def greedy_ttp(thief: Thief, city: dict) -> tuple:
-    init = time.time()
-    distance_matrix = create_distance_matrix(city)
-    total_time = 0 
-    route = []
-    act_house = city["1"]
-
-    while(len(route) < len(city)):
-        best_next_distance = math.inf
-        best_next_house = None
-
-        for i in range(1,len(city)+1 , 1):
-            if distance_matrix[act_house.get_index()-1][i-1] < best_next_distance and i != act_house.get_index():
-                if city[str(i)].get_index() not in route:
-                    best_next_distance = distance_matrix[act_house.get_index()-1][i-1]
-                    best_next_house = city[str(i)]
-
-        total_time += best_next_distance / float(thief.get_actual_velocity())
-        act_house = best_next_house
-
-        #AQUI SE DEBE APLICAR EL ROBO 
-        remaining_houses = len(city)- len(route)
-        weight_rate = int(thief.get_free_weight()) / remaining_houses
-        object_list = knapsack(act_house.get_objects(), weight_rate)
-
-        for obj in object_list:
-            thief.steal(obj)
-            
-        route.append((act_house.get_index()))
-
-    end = time.time()
-    finalTime = end - init
-
-    return route, thief.get_items(), total_time , thief.get_price(), finalTime
 
 def no_se_repite(lista):
     """
@@ -94,3 +60,45 @@ def knapsack(Objects, maxWeigth):
 
         if(knapsackCurrentWeigth == maxWeigth): break
     return items
+    
+def greedy_ttp(thief: Thief, city: dict) -> tuple:
+    init = time.time()
+    distance_matrix = create_distance_matrix(city)
+    total_time = 0 
+    route = [city["1"].get_index()]
+    act_house = city["1"]
+
+    while(len(route) < len(city)):
+        best_next_distance = math.inf
+        best_next_house = None
+
+        for i in range(1,len(city)+1 , 1):
+            if distance_matrix[act_house.get_index()-1][i-1] < best_next_distance and i != act_house.get_index():
+                if city[str(i)].get_index() not in route:
+                    best_next_distance = distance_matrix[act_house.get_index()-1][i-1]
+                    best_next_house = city[str(i)]
+
+        total_time += best_next_distance / float(thief.get_actual_velocity())
+        act_house = best_next_house
+
+        #AQUI SE DEBE APLICAR EL ROBO 
+        remaining_houses = len(city)- len(route)
+        weight_rate = int(thief.get_free_weight()) / remaining_houses
+        object_list = knapsack(act_house.get_objects(), weight_rate)
+
+        for obj in object_list:
+            thief.steal(obj)
+            
+        route.append((act_house.get_index()))
+
+    final_house = city[str(route[-1])]
+    init_house = city['1']
+
+    distance = calcular_distancia(final_house, init_house)
+
+    total_time += distance / thief.get_actual_velocity()
+    
+    end = time.time()
+    finalTime = end - init
+
+    return route, thief.get_items(), total_time , thief.get_price(), finalTime
