@@ -19,7 +19,7 @@ class Thief():
 
         return False
     
-    def get_items(self):
+    def get_items(self) -> list:
         return self.__backpack.get_objects()
     
     def get_free_weight(self) -> int:
