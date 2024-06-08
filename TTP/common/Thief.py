@@ -3,10 +3,11 @@ from .Item import Item
 
 class Thief():
     def __init__(self, v_max: float, v_min: float, max_weight: int) -> None:
-        self.__v_max = float(v_max)
-        self.__v_min = float(v_min)
-        self.__v_act = float(v_max)
+        self.__v_max = v_max
+        self.__v_min = v_min
+        self.__v_act = v_max
         self.__backpack = Backpack(max_weight)
+        self.__max_weight = max_weight
         self.__pos = {'x': 0, 'y': 0}
     
     def steal(self, new_object: Item) -> bool:
@@ -18,6 +19,18 @@ class Thief():
             return True
 
         return False
+    
+    def get_max_weight(self) -> int:
+        return self.__max_weight
+    
+    def get_v_min(self) -> float:
+        return self.__v_min
+
+    def get_v_max(self) -> float:
+        return self.__v_max
+    
+    def get_items(self) -> list:
+        return self.__backpack.get_objects()
     
     def get_free_weight(self) -> int:
         return self.__backpack.get_max_weight() - self.__backpack.get_total_weight()

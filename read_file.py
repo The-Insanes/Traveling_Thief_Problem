@@ -1,6 +1,6 @@
-from TTP.Thief import Thief
-from TTP.House import House
-from TTP.Item import Item
+from TTP.common import Thief
+from TTP.common import House
+from TTP.common import Item
 import os
 import re
 
@@ -20,8 +20,9 @@ def read_file(file_name: str) -> tuple:
             info[key] = value
 
     name = info['DIMENSION'] + '_' + info['NUMBER OF ITEMS'] + 'CAPACITY OF KNAPSACK'
-    thief = Thief(info['MAX SPEED'], info['MIN SPEED'], info['CAPACITY OF KNAPSACK'])
+    thief = Thief(float(info['MAX SPEED']), float(info['MIN SPEED']), int(info['CAPACITY OF KNAPSACK']))
     houses = dict()
+    items = []
 
     digit_pattern = re.compile(r'\d+')
     for line in file:
@@ -32,9 +33,15 @@ def read_file(file_name: str) -> tuple:
 
     for line in file:
         line = line.split('\t')
-        houses[str(int(line[3]))].add_object(Item(int(line[2]), int(line[1])))
+
+        item = Item(int(line[2]), int(line[1]), int(line[3]))
+
+        houses[str(int(line[3]))].add_object(item)
+        items.append(item)
+
     file.close()
-    return name, thief, houses, info['RENTING RATIO']
+
+    return name, thief, houses, items, float(info['RENTING RATIO'])
 
 def read_all_files(direct) -> None:
     elements = os.listdir(direct)

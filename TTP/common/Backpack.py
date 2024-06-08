@@ -3,7 +3,7 @@ from .Item import Item
 class Backpack():
     def __init__(self, max_weight: int) -> None:
         self.__objects = []
-        self.__max_weight = int(max_weight)
+        self.__max_weight = max_weight
         self.__total_weight = 0
         self.__total_price = 0
 
@@ -24,6 +24,9 @@ class Backpack():
             print(f"Objeto {i + 1}:")
             print(f"    Peso: {self.__objects[i].get_weight()}")
             print(f"    Precio: {self.__objects[i].get_profit()}\n")
+    
+    def get_objects(self) -> list:
+        return self.__objects
         
     def get_total_price(self) -> int:
         return self.__total_price
