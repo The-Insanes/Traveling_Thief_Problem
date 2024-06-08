@@ -1,105 +1,126 @@
 import random
 import numpy as np
+import time
 import math as mt
-from .common import Thief
-from .common import Item
-from .crossovers import Crossover_Base
-from .mutations import Mutation_Base
-from .objective_function import objective_function as fitness
-from copy import deepcopy
+from TTP.mutations import ResettingScramble
+from TTP.crossovers import SegmentSimple
 
-def best_sol(data: dict, population: list) -> tuple:
-    population_size = len(population)
-    best_tarjet = fitness(deepcopy(data), ([1] + population[0][0], population[0][1]))
-    best_sol = population[0]
+class GA:
+    def __init__(self, epochs: int, pop_size: int, pc: float, pm: float) -> None:
+        self.epochs = epochs
+        self.pop_size = pop_size
+        self.pc = pc
+        self.pm = pm
+        self.best = None
+        self.best_tarjet = -1 * mt.inf
 
-    for i in range(1, population_size):
-        tarjet = fitness(deepcopy(data), ([1] + population[i][0], population[i][1]))
+    def __init_parameters__(self, problem_dict: dict) -> None:
+        self.data_ttp = problem_dict['data']
+        self.fitness = problem_dict['obj_func']
+        self.mutation = problem_dict['mut_class'] if (problem_dict['mut_class'] is not None) else ResettingScramble() 
+        self.crossover = problem_dict['cross_class'] if (problem_dict['cross_class'] is not None) else SegmentSimple()
+        self.init_pop = problem_dict['init_pop'] if (problem_dict['init_pop'] is not None) else None
 
-        if tarjet > best_tarjet:
-            best_tarjet = tarjet
-            best_sol = population[i]
+    def prepare_init_pop(self) -> list:
+        population = [self.init_pop]
 
-    return best_sol
+        for _ in range(self.pop_size - 1):
+            new_state = self.mutation.execute(self.init_pop, self.data_ttp['Items'], self.data_ttp['Thief']['max_capacity'])
+            population.append(new_state)
 
-def create_population(population_size: int, total_cities_amount: int, total_objects_amount: int, max_weight: int, item_list: list[Item]) -> tuple:
-    """
-    Esta función deberá recibir el tamaño de la población inicial
-    y retornará una tupla en la cual la posición 0 corresponde a los agentes del
-    problema TSP y en la posición 1 corresponde a los del knapsack.
-    """
-    population = []
+        return population
 
-    for _ in range(population_size):
-        
-        ttp_actual_solution = random.sample(range(2, total_cities_amount + 1), total_cities_amount - 1)
-        
-        # solution example for knapsack: [1,0,0,0,1,0,1,1,0,1] with 10 items in total
-        # for each knapsack solution
+    def create_population(self) -> np.ndarray:
+        total_cities_amount = len(self.data_ttp['Houses'])
+        total_objects_amount = len(self.data_ttp['Items'])
+        item_list = self.data_ttp['Items']
+        max_weight = self.data_ttp['Thief']['max_capacity']
+        population = []
 
-        actual_weight = 0 
-        # list with items selected in actual solution
-        actual_selected_items = [0] * (total_objects_amount)
-
-        # list with random numbers ex: [2,1,4,5,3,6,7,9,8,0] that represents the order to select items randomly
-        order_selection = random.sample(range(0, total_objects_amount), total_objects_amount)
-
-        for i in range(total_objects_amount):
-            # add item weight to actual weight to prove if its more than max weight or not
-            if ((actual_weight + (item_list[order_selection[i]]).get_weight()) <= max_weight):
-                # the object in 'item_list[order_selection[i]' is an 'Item' so we can tecnically use .getWeight()
-                actual_weight += (item_list[order_selection[i]]).get_weight()
-                actual_selected_items[order_selection[i]] = 1 #the item selection is_valid so we put '1'  in the actual_selected_items list
-            else:
-                break
-        knapsack_actual_solution = actual_selected_items
-        
-        # we add both solutions to population and continue with next child
-        population.append((ttp_actual_solution, knapsack_actual_solution)) 
-
-    return population 
-    
-
-def select_parents(population, truncation_ratio, data):
-    population_sorted = sorted(population, key=lambda ind: fitness(deepcopy(data), ([1] + ind[0], ind[1])), reverse=True)
-    truncation_index = int(truncation_ratio * len(population))
-    truncated_population = population_sorted[:truncation_index]
-    
-    parent1 = random.choice(truncated_population)
-    parent2 = random.choice(truncated_population)
-    
-    return parent1, parent2
-
-def prepare_init_pop(init_pop: tuple, population_size: int, mutation: Mutation_Base):
-    population = [init_pop]
-
-    for _ in range(population_size - 1):
-        new_state = mutation.execute(init_pop, 1)
-        population.append(new_state)
-
-    return population
-
-def GA(data: dict, mutate_ratio: float, truncation_ratio: float, epochs: int, population_size: int,
-       total_cities: int, total_objects: int, mutation: Mutation_Base, crossover: Crossover_Base, 
-       init_pop: tuple = None) -> tuple:
-    num_units = mt.log10(epochs) // 1
-
-    if init_pop is None: population = create_population(population_size, total_cities, total_objects, data['Thief'].get_free_weight(), data['Items'])
-    else: population = prepare_init_pop(init_pop, population_size, mutation)
-    
-    for gen in range(epochs):
-        child_population = []
-
-        for _ in range(population_size):
-            parent_1, parent_2 = select_parents(population, truncation_ratio, data)
+        for _ in range(self.pop_size):
             
-            offspring = crossover.execute(parent_1, parent_2, data['Items'], data['Thief'].get_free_weight())
-            offspring = mutation.execute(offspring, mutate_ratio)
+            ttp_actual_solution = random.sample(range(2, total_cities_amount + 1), total_cities_amount - 1)
+            
+            # solution example for knapsack: [1,0,0,0,1,0,1,1,0,1] with 10 items in total
+            # for each knapsack solution
 
-            child_population.append(offspring)
-        
-        population = child_population
-        best = best_sol(data, population)
-        print(f"Generation {gen}: Fitness = {round(fitness(deepcopy(data), ([1] + best[0], best[1])), 3)}")
+            actual_weight = 0 
+            # list with items selected in actual solution
+            actual_selected_items = [0] * (total_objects_amount)
+
+            # list with random numbers ex: [2,1,4,5,3,6,7,9,8,0] that represents the order to select items randomly
+            order_selection = random.sample(range(0, total_objects_amount), total_objects_amount)
+
+            for i in range(total_objects_amount):
+                # add item weight to actual weight to prove if its more than max weight or not
+                if ((actual_weight + (item_list[order_selection[i]]).get_weight()) <= max_weight):
+                    # the object in 'item_list[order_selection[i]' is an 'Item' so we can tecnically use .getWeight()
+                    actual_weight += (item_list[order_selection[i]]).get_weight()
+                    actual_selected_items[order_selection[i]] = 1 #the item selection is_valid so we put '1'  in the actual_selected_items list
+                else:
+                    break
+            knapsack_actual_solution = actual_selected_items
+            
+            # we add both solutions to population and continue with next child
+            population.append((ttp_actual_solution, knapsack_actual_solution)) 
+
+        return population 
     
-    return best
+    def select_parents(self, pop: np.ndarray):
+        population_sorted = sorted(pop, key=lambda ind: self.fitness(self.data_ttp, ind), reverse=True)
+        truncation_index = int(self.pc * len(pop))
+        truncated_population = population_sorted[:truncation_index]
+        
+        parent1 = random.choice(truncated_population)
+        parent2 = random.choice(truncated_population)
+        
+        return parent1, parent2
+    
+    def best_sol(self, population: list) -> None:
+        population_size = len(population)
+        if self.best is None:
+            self.best_tarjet = self.fitness(self.data_ttp, population[0])
+            self.best = population[0]
+        temp_tarjet = self.best_tarjet
+
+        for i in range(1, population_size):
+            tarjet = self.fitness(self.data_ttp, population[i])
+
+            if tarjet > self.best_tarjet:
+                self.best_tarjet = tarjet
+                self.best = population[i]
+            
+        if temp_tarjet == self.best_tarjet: population[0] = self.best
+
+    def solve(self, problem_dict: dict, verbose: bool = True) -> None:
+        exec_time = 0
+        self.__init_parameters__(problem_dict)
+
+        if self.init_pop is None: pop = self.create_population()
+        else: pop = self.prepare_init_pop()
+
+        for gen in range(self.epochs):
+            init_gen = time.time()
+            child_population = []
+
+            for _ in range(self.pop_size):
+                parent_1, parent_2 = self.select_parents(pop)
+
+                offspring = self.crossover.execute(parent_1, parent_2, self.data_ttp['Items'], self.data_ttp['Thief']['max_capacity'])
+                if random.random() <= self.pm:
+                    offspring = self.mutation.execute(offspring, self.data_ttp['Items'], self.data_ttp['Thief']['max_capacity'])
+
+                child_population.append(offspring)
+        
+            pop = child_population
+            self.best_sol(pop)
+
+            end_gen = time.time()
+            gen_time = end_gen - init_gen
+            exec_time += gen_time
+
+            if verbose: 
+                print(f"Generation {gen}:")
+                print(f"   Fitness: {round(self.best_tarjet, 3)} Execution_time: {round(gen_time, 3)}")
+        
+        return self.best
