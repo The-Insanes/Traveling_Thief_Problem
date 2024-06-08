@@ -1,4 +1,4 @@
-from .common import Thief, Item
+from TTP.common import Thief, Item
 from copy import deepcopy
 import math as mt
 
@@ -15,10 +15,12 @@ def steal_items(house: int, thief: Thief, items: list[Item], sol: list[int]) -> 
 
 def objective_function(data: dict, sol: tuple, verbose: bool = False) -> float:
     tsp_sol, knapsack_sol = sol[0], sol[1]
+    if not 1 in tsp_sol: tsp_sol.insert(0, 1)
     tsp_size = len(tsp_sol)
-    houses, items, thief = data['Houses'], data['Items'], data['Thief']
+    houses, items = data['Houses'], data['Items']
+    thief = Thief(data['Thief']['v_max'], data['Thief']['v_min'], data['Thief']['max_capacity'])
     TSP_tarjet = 0.0
-
+    
     for i in range(tsp_size - 1):
         house, next_house = str(tsp_sol[i]), str(tsp_sol[i + 1])
         
