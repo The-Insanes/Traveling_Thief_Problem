@@ -21,11 +21,11 @@ class GA:
         self.crossover = problem_dict['cross_class'] if (problem_dict['cross_class'] is not None) else SegmentSimple()
         self.init_pop = problem_dict['init_pop'] if (problem_dict['init_pop'] is not None) else None
 
-    def prepare_init_pop(self) -> list:
-        population = [self.init_pop]
+    def prepare_init_pop(self, pop) -> list:
+        population = [pop]
 
         for _ in range(self.pop_size - 1):
-            new_state = self.mutation.execute(self.init_pop, self.data_ttp['Items'], self.data_ttp['Thief']['max_capacity'])
+            new_state = self.mutation.execute(pop, self.data_ttp['Items'], self.data_ttp['Thief']['max_capacity'])
             population.append(new_state)
 
         return population
@@ -96,8 +96,9 @@ class GA:
         exec_time = 0
         self.__init_parameters__(problem_dict)
 
-        if self.init_pop is None: pop = self.create_population()
-        else: pop = self.prepare_init_pop()
+        if self.init_pop is None and self.best is None: pop = self.create_population()
+        elif self.best is not None: pop = self.prepare_init_pop(self.best)
+        elif self.init_pop is not None: pop = self.prepare_init_pop(self.init_pop)
 
         for gen in range(self.epochs):
             init_gen = time.time()
