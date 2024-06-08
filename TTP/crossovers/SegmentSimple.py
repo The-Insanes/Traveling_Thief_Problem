@@ -1,5 +1,6 @@
 from .Crossover_Base import Crossover_Base
 from numpy import ndarray
+from copy import deepcopy
 import random
 
 class SegmentSimple(Crossover_Base):
@@ -58,10 +59,10 @@ class SegmentSimple(Crossover_Base):
 
     def execute(self, parent_1: tuple, parent_2: tuple, items: list, max_capacity: float) -> tuple:
         #KNAPSACK
-        first_knapsack = self.execute_knapsack(parent_1[1], parent_2[1], items, max_capacity)
+        first_knapsack = self.execute_knapsack(deepcopy(parent_1[1]), deepcopy(parent_2[1]), items, max_capacity)
 
         #TRAVELING SALESMAN PROBLEM
-        first_TSP= self.execute_tsp(parent_1[0], parent_2[0])
+        first_TSP= self.execute_tsp(deepcopy(parent_1[0]), deepcopy(parent_2[0]))
         first_tuple = (first_TSP, first_knapsack)
 
         return first_tuple
