@@ -10,11 +10,11 @@ from copy import deepcopy
 
 def best_sol(data: dict, population: list) -> tuple:
     population_size = len(population)
-    best_tarjet = fitness(data, population[0])
+    best_tarjet = fitness(deepcopy(data), ([1] + population[0][0], population[0][1]))
     best_sol = population[0]
 
     for i in range(1, population_size):
-        tarjet = fitness(data, population[i])
+        tarjet = fitness(deepcopy(data), ([1] + population[i][0], population[i][1]))
 
         if tarjet > best_tarjet:
             best_tarjet = tarjet
@@ -32,7 +32,7 @@ def create_population(population_size: int, total_cities_amount: int, total_obje
 
     for _ in range(population_size):
         
-        ttp_actual_solution = random.sample(range(1, total_cities_amount + 1), total_cities_amount)
+        ttp_actual_solution = random.sample(range(2, total_cities_amount + 1), total_cities_amount - 1)
         
         # solution example for knapsack: [1,0,0,0,1,0,1,1,0,1] with 10 items in total
         # for each knapsack solution
@@ -61,7 +61,7 @@ def create_population(population_size: int, total_cities_amount: int, total_obje
     
 
 def select_parents(population, truncation_ratio, data):
-    population_sorted = sorted(population, key=lambda ind: fitness(data, ind), reverse=True)
+    population_sorted = sorted(population, key=lambda ind: fitness(deepcopy(data), ([1] + ind[0], ind[1])), reverse=True)
     truncation_index = int(truncation_ratio * len(population))
     truncated_population = population_sorted[:truncation_index]
     
@@ -86,12 +86,12 @@ def GA(data: dict, mutate_ratio: float, truncation_ratio: float, epochs: int, po
 
     if init_pop is None: population = create_population(population_size, total_cities, total_objects, data['Thief'].get_free_weight(), data['Items'])
     else: population = prepare_init_pop(init_pop, population_size, mutation)
-
+    
     for gen in range(epochs):
         child_population = []
 
         for _ in range(population_size):
-            parent_1, parent_2 = select_parents(population, truncation_ratio, deepcopy(data))
+            parent_1, parent_2 = select_parents(population, truncation_ratio, data)
             
             offspring = crossover.execute(parent_1, parent_2, data['Items'], data['Thief'].get_free_weight())
             offspring = mutation.execute(offspring, mutate_ratio)
@@ -100,6 +100,6 @@ def GA(data: dict, mutate_ratio: float, truncation_ratio: float, epochs: int, po
         
         population = child_population
         best = best_sol(data, population)
-        print(f"Generation {gen: {num_units}d}: Fitness = {round(fitness(data, best), 3)}")
+        print(f"Generation {gen}: Fitness = {round(fitness(deepcopy(data), ([1] + best[0], best[1])), 3)}")
     
     return best
