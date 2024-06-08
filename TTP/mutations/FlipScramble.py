@@ -18,10 +18,9 @@ class FlipScramble(Mutation_Base):
 
         return sol
 
-    def execute(self, child: tuple, mutate_ratio: float) -> tuple:
-        if random.random() < mutate_ratio:
-            mutatedRoute = self.execute_tsp(deepcopy(child[0]))
-            mutatedObjects = self.execute_knapsack(deepcopy(child[1]))
+    def execute(self, child: tuple, item_list: list, max_capacity: int) -> tuple:
+        mutatedRoute = self.execute_tsp(deepcopy(child[0]))
+        mutatedObjects = self.execute_knapsack(deepcopy(child[1]), item_list, max_capacity)
 
-            child = mutatedRoute, mutatedObjects 
+        child = mutatedRoute, mutatedObjects 
         return child

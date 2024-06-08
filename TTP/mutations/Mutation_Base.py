@@ -12,5 +12,5 @@ class Mutation_Base(metaclass = ABCMeta):
         pass
 
     @abstractmethod
-    def execute(self, child: tuple, mutate_ratio: float) -> tuple:
+    def execute(self, child: tuple, item_list: list, max_capacity: int) -> tuple:
         pass
