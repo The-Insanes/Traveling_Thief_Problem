@@ -6,11 +6,12 @@ from TTP.mutations import ResettingScramble
 from TTP.crossovers import SegmentSimple
 
 class GA:
-    def __init__(self, epochs: int, pop_size: int, pc: float, pm: float) -> None:
+    def __init__(self, epochs: int, pop_size: int, pc: float, pm: float, pb: float) -> None:
         self.epochs = epochs
         self.pop_size = pop_size
         self.pc = pc
         self.pm = pm
+        self.pb = pb
         self.best = None
         self.best_tarjet = -1 * mt.inf
 
@@ -76,52 +77,70 @@ class GA:
         
         return parent1, parent2
     
-    def best_sol(self, population: list) -> None:
+    def best_sol(self, population: list) -> bool:
         population_size = len(population)
         if self.best is None:
             self.best_tarjet = self.fitness(self.data_ttp, population[0])
             self.best = population[0]
         temp_tarjet = self.best_tarjet
 
-        for i in range(1, population_size):
+        for i in range(population_size):
             tarjet = self.fitness(self.data_ttp, population[i])
 
             if tarjet > self.best_tarjet:
                 self.best_tarjet = tarjet
                 self.best = population[i]
             
-        if temp_tarjet == self.best_tarjet: population[0] = self.best
+        if temp_tarjet == self.best_tarjet: return False
+
+        return True
+
+    def process_individual_gen(self, pop: list):
+        parent_1, parent_2 = self.select_parents(pop)
+
+        offspring = self.crossover.execute(parent_1, parent_2, self.data_ttp['Items'], self.data_ttp['Thief']['max_capacity'])
+        if random.random() <= self.pm:
+            offspring = self.mutation.execute(offspring, self.data_ttp['Items'], self.data_ttp['Thief']['max_capacity'])
+
+        return offspring
+    
+    def merge_pop(self, pop):
+        population_sorted = sorted(pop, key=lambda ind: self.fitness(self.data_ttp, ind))
+        truncation_index = int(self.pb * len(pop))
+  
+        population_sorted[0] = self.best
+        for i in range(1, truncation_index):
+            new_state = self.mutation.execute(self.best, self.data_ttp['Items'], self.data_ttp['Thief']['max_capacity'])
+            population_sorted[i] = new_state
+
+        return pop
 
     def solve(self, problem_dict: dict, verbose: bool = True) -> None:
-        exec_time = 0
-        self.__init_parameters__(problem_dict)
+        try:
+            exec_time = 0
+            self.__init_parameters__(problem_dict)
 
-        if self.init_pop is None and self.best is None: pop = self.create_population()
-        elif self.best is not None: pop = self.prepare_init_pop(self.best)
-        elif self.init_pop is not None: pop = self.prepare_init_pop(self.init_pop)
+            if self.init_pop is None and self.best is None: pop = self.create_population()
+            elif self.best is not None: pop = self.prepare_init_pop(self.best)
+            elif self.init_pop is not None: pop = self.prepare_init_pop(self.init_pop)
 
-        for gen in range(self.epochs):
-            init_gen = time.time()
-            child_population = []
+            for gen in range(self.epochs):
+                init_gen = time.time()
+                child_population = []
 
-            for _ in range(self.pop_size):
-                parent_1, parent_2 = self.select_parents(pop)
+                child_population = list(map(lambda x: self.process_individual_gen(pop), range(self.pop_size)))
+            
+                pop = child_population
+                if not self.best_sol(pop): pop = self.merge_pop(pop)
 
-                offspring = self.crossover.execute(parent_1, parent_2, self.data_ttp['Items'], self.data_ttp['Thief']['max_capacity'])
-                if random.random() <= self.pm:
-                    offspring = self.mutation.execute(offspring, self.data_ttp['Items'], self.data_ttp['Thief']['max_capacity'])
+                end_gen = time.time()
+                gen_time = end_gen - init_gen
+                exec_time += gen_time
 
-                child_population.append(offspring)
-        
-            pop = child_population
-            self.best_sol(pop)
-
-            end_gen = time.time()
-            gen_time = end_gen - init_gen
-            exec_time += gen_time
-
-            if verbose: 
-                print(f"Generation {gen}:")
-                print(f"   Fitness: {round(self.best_tarjet, 3)} Execution_time: {round(gen_time, 3)}")
-        
+                if verbose: 
+                    print(f"Generation {gen}:")
+                    print(f"   Fitness: {round(self.best_tarjet, 3)} Execution_time: {round(gen_time, 3)}")
+        except KeyboardInterrupt as e:
+            print(f'best sol: {round(self.best_tarjet, 3)}')
+            
         return self.best
