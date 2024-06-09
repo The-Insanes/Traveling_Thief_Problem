@@ -4,6 +4,7 @@ import time
 import math as mt
 from TTP.mutations import ResettingScramble
 from TTP.crossovers import SegmentSimple
+from copy import deepcopy
 
 class GA:
     def __init__(self, epochs: int, pop_size: int, pc: float, pm: float, pb: float) -> None:
@@ -18,9 +19,9 @@ class GA:
     def __init_parameters__(self, problem_dict: dict) -> None:
         self.data_ttp = problem_dict['data']
         self.fitness = problem_dict['obj_func']
-        self.mutation = problem_dict['mut_class'] if (problem_dict['mut_class'] is not None) else ResettingScramble() 
-        self.crossover = problem_dict['cross_class'] if (problem_dict['cross_class'] is not None) else SegmentSimple()
-        self.init_pop = problem_dict['init_pop'] if (problem_dict['init_pop'] is not None) else None
+        self.mutation = problem_dict['mut_class'] if ('mut_class' in problem_dict and problem_dict['mut_class'] is not None) else ResettingScramble() 
+        self.crossover = problem_dict['cross_class'] if ('cross_class' in problem_dict and problem_dict['cross_class'] is not None) else SegmentSimple()
+        self.init_pop = problem_dict['init_pop'] if ('init_pop' in problem_dict and problem_dict['init_pop'] is not None) else None
 
     def prepare_init_pop(self, pop) -> list:
         population = [pop]
@@ -68,7 +69,7 @@ class GA:
         return population 
     
     def select_parents(self, pop: np.ndarray):
-        population_sorted = sorted(pop, key=lambda ind: self.fitness(self.data_ttp, ind), reverse=True)
+        population_sorted = sorted(pop, key=lambda ind: self.fitness(self.data_ttp, deepcopy(ind)), reverse=True)
         truncation_index = int(self.pc * len(pop))
         truncated_population = population_sorted[:truncation_index]
         
@@ -80,12 +81,12 @@ class GA:
     def best_sol(self, population: list) -> bool:
         population_size = len(population)
         if self.best is None:
-            self.best_tarjet = self.fitness(self.data_ttp, population[0])
+            self.best_tarjet = self.fitness(self.data_ttp, deepcopy(population[0]))
             self.best = population[0]
         temp_tarjet = self.best_tarjet
 
         for i in range(population_size):
-            tarjet = self.fitness(self.data_ttp, population[i])
+            tarjet = self.fitness(self.data_ttp, deepcopy(population[i]))
 
             if tarjet > self.best_tarjet:
                 self.best_tarjet = tarjet
@@ -105,7 +106,7 @@ class GA:
         return offspring
     
     def merge_pop(self, pop):
-        population_sorted = sorted(pop, key=lambda ind: self.fitness(self.data_ttp, ind))
+        population_sorted = sorted(pop, key=lambda ind: self.fitness(self.data_ttp, deepcopy(ind)))
         truncation_index = int(self.pb * len(pop))
   
         population_sorted[0] = self.best
