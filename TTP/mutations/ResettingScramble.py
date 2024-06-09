@@ -20,7 +20,7 @@ class ResettingScramble(Mutation_Base):
         segmento = sol[i:j+1]
         random.shuffle(segmento)
         sol[i:j+1] = segmento
-
+        
         return sol
 
     def execute(self, child: tuple, item_list: list, max_capacity: int) -> tuple:
