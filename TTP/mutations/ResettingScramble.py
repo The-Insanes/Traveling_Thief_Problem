@@ -5,15 +5,18 @@ import random
 
 class ResettingScramble(Mutation_Base):
     def execute_knapsack(self, sol: ndarray, item_list: list = None, max_capacity: int = 0) -> ndarray:
-        i = random.randint(0, len(sol) - 1)
-        if sol[i] == 1:
-            sol[i] = 0
-        else:
-            item_weight = item_list[i].get_weight()
-            total_weight = sum(item_list[j].get_weight() for j in range(len(sol)) if sol[j] == 1)
-            if total_weight + item_weight <= max_capacity:
-                sol[i] = 1
-        return sol
+        sol_size = len(sol)
+        indexes = random.sample(range(sol_size), int(sol_size * 0.2))
+
+        for index in indexes:
+            if sol[index] == 1:
+                sol[index] = 0
+            else:
+                item_weight = item_list[index].get_weight()
+                total_weight = sum(item_list[j].get_weight() for j in range(len(sol)) if sol[j] == 1)
+                if total_weight + item_weight <= max_capacity:
+                    sol[index] = 1
+            return sol
     
     def execute_tsp(self, sol: ndarray) -> ndarray:
         i, j = sorted(random.sample(range(len(sol)), 2))
