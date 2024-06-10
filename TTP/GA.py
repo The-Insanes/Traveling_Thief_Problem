@@ -3,7 +3,7 @@ import numpy as np
 import time
 import math as mt
 from TTP.mutations import ResettingScramble
-from TTP.crossovers import SegmentSimple
+from TTP.crossovers import PMXSimple
 from copy import deepcopy
 
 class GA:
@@ -14,13 +14,13 @@ class GA:
         self.pm = pm
         self.pb = pb
         self.best = None
-        self.best_tarjet = -1 * mt.inf
+        self.best_target = -1 * mt.inf
 
     def __init_parameters__(self, problem_dict: dict) -> None:
         self.data_ttp = problem_dict['data']
         self.fitness = problem_dict['obj_func']
         self.mutation = problem_dict['mut_class'] if ('mut_class' in problem_dict and problem_dict['mut_class'] is not None) else ResettingScramble() 
-        self.crossover = problem_dict['cross_class'] if ('cross_class' in problem_dict and problem_dict['cross_class'] is not None) else SegmentSimple()
+        self.crossover = problem_dict['cross_class'] if ('cross_class' in problem_dict and problem_dict['cross_class'] is not None) else PMXSimple()
         self.init_pop = problem_dict['init_pop'] if ('init_pop' in problem_dict and problem_dict['init_pop'] is not None) else None
 
     def prepare_init_pop(self, pop) -> list:
@@ -78,21 +78,25 @@ class GA:
         
         return parent1, parent2
     
-    def best_sol(self, population: list) -> bool:
+    def search_best_sol(self, population: list) -> bool:
         population_size = len(population)
+        self.c_best_target = self.fitness(self.data_ttp, deepcopy(population[0]))
         if self.best is None:
-            self.best_tarjet = self.fitness(self.data_ttp, deepcopy(population[0]))
+            self.best_target = self.c_best_target
             self.best = population[0]
-        temp_tarjet = self.best_tarjet
+
+        temp_target = self.best_target
 
         for i in range(population_size):
-            tarjet = self.fitness(self.data_ttp, deepcopy(population[i]))
+            target = self.fitness(self.data_ttp, deepcopy(population[i]))
 
-            if tarjet > self.best_tarjet:
-                self.best_tarjet = tarjet
+            if target > self.c_best_target:
+                self.c_best_target = target
+            if target > self.best_target:
+                self.best_target = target
                 self.best = population[i]
             
-        if temp_tarjet == self.best_tarjet: return False
+        if temp_target == self.best_target: return False
 
         return True
 
@@ -118,30 +122,34 @@ class GA:
 
     def solve(self, problem_dict: dict, verbose: bool = True) -> None:
         try:
-            exec_time = 0
+            init_exec_time = time.time()
             self.__init_parameters__(problem_dict)
 
             if self.init_pop is None and self.best is None: pop = self.create_population()
             elif self.best is not None: pop = self.prepare_init_pop(self.best)
             elif self.init_pop is not None: pop = self.prepare_init_pop(self.init_pop)
 
-            for gen in range(self.epochs):
+            for epoch in range(self.epochs):
                 init_gen = time.time()
                 child_population = []
 
                 child_population = list(map(lambda x: self.process_individual_gen(pop), range(self.pop_size)))
             
                 pop = child_population
-                if not self.best_sol(pop): pop = self.merge_pop(pop)
+                if not self.search_best_sol(pop): pop = self.merge_pop(pop)
 
                 end_gen = time.time()
                 gen_time = end_gen - init_gen
-                exec_time += gen_time
 
                 if verbose: 
-                    print(f"Generation {gen}:")
-                    print(f"   Fitness: {round(self.best_tarjet, 3)} Execution_time: {round(gen_time, 3)}")
+                    print(f"Epoch {epoch + 1}: Global best: {round(self.best_target, 3)} | Current best: {round(self.c_best_target, 3)} | Execution_time: {round(gen_time, 3)}[s]")
+
         except KeyboardInterrupt as e:
-            print(f'best sol: {round(self.best_tarjet, 3)}')
+            print('Ejecución Interrumpida')
             
+        exit_exec_time = time.time()
+        total_time = exit_exec_time - init_exec_time
+
+        print(f'Global best: {round(self.best_target, 3)}  |  Current best: {round(self.c_best_target, 3)}  |  Execution_time: {total_time // 60}:{total_time % 60}')
+
         return self.best
