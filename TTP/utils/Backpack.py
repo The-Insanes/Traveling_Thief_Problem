@@ -1,4 +1,4 @@
-from .Item import Item
+from TTP.utils import Item
 
 class Backpack():
     def __init__(self, max_weight: int) -> None:

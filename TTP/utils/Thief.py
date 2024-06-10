@@ -1,4 +1,4 @@
-from .Backpack import Backpack
+from TTP.utils import Backpack
 from .Item import Item
 
 class Thief():
