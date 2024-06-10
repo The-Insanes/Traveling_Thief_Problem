@@ -33,16 +33,73 @@ class GA:
         return population
 
     def create_population(self) -> np.ndarray:
-        total_cities_amount = len(self.data_ttp['Houses'])
+
+        def extract_pos(house):
+            return house['x'], house['y']
+
+        def calculate_distance(pos1: tuple, pos2: tuple) -> float:
+            return ((pos1[0] - pos2[0]) ** 2 + (pos1[1] - pos2[1]) ** 2) ** 0.5
+        
         total_objects_amount = len(self.data_ttp['Items'])
         item_list = self.data_ttp['Items']
         max_weight = self.data_ttp['Thief']['max_capacity']
         population = []
+        
 
-        for _ in range(self.pop_size):
+        for _ in range(self.pop_size):# range of solutions we need
+
+            # Start with all houses available for every solution
+            remain_houses = deepcopy(self.data_ttp['Houses'])
+            tsp_actual_solution = [] 
+     
+
+            start_house_id = '1'
+            current_pos = extract_pos(remain_houses[start_house_id].get_pos())
+            remain_houses.pop(start_house_id)
+
+            while remain_houses:
+
+                scores = []
+
+                for house_id in remain_houses.keys():
+                    house_pos = extract_pos(remain_houses[house_id].get_pos())
+                    distance = calculate_distance(current_pos, house_pos)
+                    ratio = remain_houses[house_id].get_ratio()
+                    if distance == 0:
+                        score = float('inf')  # Avoid division by zero by assigning a very high score (if the same house)
+                    else:
+                        score = ratio / distance  # Higher score for better value and closer distance
+                    scores.append((score, house_id))
+                
+                # Sort houses by score in descending order (higher scores first)
+                scores.sort(reverse=True, key=lambda x: x[0])
+
+                # Calculate the top 2 (or less) houses with the best scores
+                num_best = min(2, len(scores))
+
+                # Select a random number of best houses (at most 4)
+                num_selected = random.randint(1, num_best)
+                # Select random indices from the top scores list
+                selected_indices = random.sample(range(num_best), num_selected)
+                # Extract the corresponding house IDs using the selected indices
+                selected_houses = [scores[i][1] for i in selected_indices]
+
+                # Select a random house among the selected best houses
+                chosen_house_id = random.choice(selected_houses)
+                
+                # Calculate the top 90% of the houses with the best scores
+                num_best = max(1, len(scores) // 95)
+                
+                # Select a random house among the best houses
+                best_houses = scores[:num_best]
+                chosen_score, chosen_house_id = random.choice(best_houses)
+                
+                tsp_actual_solution.append(int(chosen_house_id))
+                current_pos = extract_pos(remain_houses[chosen_house_id].get_pos())
+                remain_houses.pop(chosen_house_id)
             
-            ttp_actual_solution = random.sample(range(2, total_cities_amount + 1), total_cities_amount - 1)
-            
+
+
             # solution example for knapsack: [1,0,0,0,1,0,1,1,0,1] with 10 items in total
             # for each knapsack solution
 
@@ -64,7 +121,7 @@ class GA:
             knapsack_actual_solution = actual_selected_items
             
             # we add both solutions to population and continue with next child
-            population.append((ttp_actual_solution, knapsack_actual_solution)) 
+            population.append((tsp_actual_solution, knapsack_actual_solution)) 
 
         return population 
     
@@ -150,6 +207,6 @@ class GA:
         exit_exec_time = time.time()
         total_time = exit_exec_time - init_exec_time
 
-        print(f'Global best: {round(self.best_target, 3)}  |  Current best: {round(self.c_best_target, 3)}  |  Execution_time: {total_time // 60}:{total_time % 60}')
+        print(f'Global best: {round(self.best_target, 3)}  |  Current best: {round(self.c_best_target, 3)}  |  Execution_time: {int(total_time) // 60}:{int(total_time) % 60}')
 
         return self.best
