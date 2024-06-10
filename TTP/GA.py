@@ -177,6 +177,12 @@ class GA:
 
         return pop
 
+    def select_population(self, pop: list, child_pop: list) -> list:
+        new_pop = pop + child_pop
+        new_pop = sorted(new_pop, key= lambda x: self.fitness(self.data_ttp, deepcopy(x)), reverse= True)
+
+        return new_pop[:self.pop_size]
+
     def solve(self, problem_dict: dict, verbose: bool = True) -> None:
         try:
             init_exec_time = time.time()
@@ -192,8 +198,8 @@ class GA:
 
                 child_population = list(map(lambda x: self.process_individual_gen(pop), range(self.pop_size)))
             
-                pop = child_population
-                if not self.search_best_sol(pop): pop = self.merge_pop(pop)
+                pop = self.select_population(pop, child_population)
+                if not self.search_best_sol(pop): self.merge_pop(pop)
 
                 end_gen = time.time()
                 gen_time = end_gen - init_gen
