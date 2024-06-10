@@ -1,4 +1,4 @@
-from .Mutation_Base import Mutation_Base
+from TTP.mutations.Mutation_Base import Mutation_Base
 from numpy import ndarray
 from copy import deepcopy
 import random
@@ -6,7 +6,7 @@ import random
 class ResettingSwamp(Mutation_Base):
     def execute_knapsack(self, sol: ndarray, item_list: list = None, max_capacity: int = 0) -> ndarray:
         sol_size = len(sol)
-        indexes = random.sample(range(sol_size), int(sol_size * 0.2))
+        indexes = random.sample(range(sol_size), int(sol_size * 0.4))
 
         for index in indexes:
             if sol[index] == 1:
