@@ -6,6 +6,10 @@
 > - Joaquin Tapia
 > - Matías Bugueño
 
+<a href= "https://github.com/The-Insanes/Traveling_Thief_Problem">
+    <img src="https://img.shields.io/badge/-GitHub-181717?style=for-the-badge&logo=github&logoColor=white" alt="GitHub">
+</a>
+
 ## Guía
 
 Para ejecutar este código es necesario el uso de un entorno virtual de python llamado venv, para poder utilizarlo dentro de este repositorio debe abrir la terminal y colocar el siguiente comando asegurandose que la dirección de la terminal se encuentre dentro del repositorio.
