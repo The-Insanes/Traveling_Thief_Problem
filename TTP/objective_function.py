@@ -1,4 +1,4 @@
-from TTP.common import Thief, Item
+from TTP.utils import Thief, Item
 from copy import deepcopy
 import math as mt
 

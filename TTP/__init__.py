@@ -1,2 +1,2 @@
-from .GA import GA
-from .objective_function import objective_function
+from TTP.GA import GA
+from TTP.objective_function import objective_function

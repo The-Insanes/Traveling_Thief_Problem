@@ -1,5 +1,5 @@
 import math
-from .common import House, Thief, Item
+from TTP.utils import House, Thief, Item
 import time 
 
 def calcular_distancia(houseX: House,houseY: House) -> int:
@@ -23,8 +23,6 @@ def create_distance_matrix(city: dict) -> list:
         matrix.append(houseX_distances)
 
     return matrix 
-
-
 
 def no_se_repite(lista):
     """

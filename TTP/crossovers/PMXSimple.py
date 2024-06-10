@@ -1,4 +1,4 @@
-from .Crossover_Base import Crossover_Base
+from TTP.crossovers import Crossover_Base
 from numpy import ndarray
 from copy import deepcopy
 import random
