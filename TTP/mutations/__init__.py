@@ -1,3 +1,3 @@
-from .Mutation_Base import Mutation_Base
-from .ResettingScramble import ResettingScramble
-from .ResettingSwamp import ResettingSwamp
+from TTP.mutations.Mutation_Base import Mutation_Base
+from TTP.mutations.ResettingScramble import ResettingScramble
+from TTP.mutations.ResettingSwamp import ResettingSwamp
